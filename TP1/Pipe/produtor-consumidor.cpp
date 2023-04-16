@@ -82,9 +82,6 @@ int main(int argc, char const *argv[]) {
         wait(NULL);
         return 0;
     }
-
-    cout << "testando" << endl;
-    cout << new_N(1) << endl;;
     
     return 0;
 }
