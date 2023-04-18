@@ -49,7 +49,7 @@ int main(int argc, char const *argv[]) {
       return 1;
     }
 
-    listen(sock_server,2);
+    listen(sock_server,1);
 
     cout << "Server Listening..." << endl;
 
