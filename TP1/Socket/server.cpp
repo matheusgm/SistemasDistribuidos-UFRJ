@@ -8,7 +8,6 @@
 
 using namespace std;
 
-#define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 5000
 
 bool is_prime(unsigned int n) {
@@ -41,7 +40,7 @@ int main(int argc, char const *argv[]) {
 
     // Server address definition
     adrServer.sin_family = AF_INET;
-    adrServer.sin_addr.s_addr = inet_addr(SERVER_IP);
+    adrServer.sin_addr.s_addr = INADDR_ANY;
     adrServer.sin_port = htons(SERVER_PORT);
 
     if (bind(sock_server,(struct sockaddr *) &adrServer,sizeof(adrServer)) < 0) {
