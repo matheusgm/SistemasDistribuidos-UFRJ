@@ -8,9 +8,15 @@
 
 using namespace std;
 
-#define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 5000
 
+/**
+ * @brief checks if n in prime in O(n)
+ * 
+ * @param n number to be checked if prime
+ * @return true if n is prime
+ * @return false if n is not prime
+ */
 bool is_prime(unsigned int n) {
   if (n == 0 || n == 1) {
     return false;
@@ -25,6 +31,9 @@ bool is_prime(unsigned int n) {
   return true;
 }
 
+/**
+ * @brief sets server, waits for connection and answers client
+ */
 int main(int argc, char const *argv[]) {
     
     int sock_server, sock_client;
@@ -41,7 +50,7 @@ int main(int argc, char const *argv[]) {
 
     // Server address definition
     adrServer.sin_family = AF_INET;
-    adrServer.sin_addr.s_addr = inet_addr(SERVER_IP);
+    adrServer.sin_addr.s_addr = INADDR_ANY;
     adrServer.sin_port = htons(SERVER_PORT);
 
     if (bind(sock_server,(struct sockaddr *) &adrServer,sizeof(adrServer)) < 0) {

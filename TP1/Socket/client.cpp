@@ -8,13 +8,23 @@
 
 using namespace std;
 
-#define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 5000
 
+/**
+ * @brief returns old number plus random number between 1 and 100
+ * 
+ * @param old_N number written on pipe in previous iteration
+ */
 unsigned int new_N(unsigned int old_N) {
     return old_N + (1 + rand()%100);
 }
 
+/**
+ * @brief connects client to server, sends msgs and prints if is prime
+ * 
+ * @param argc = 2
+ * @param argv = [the command with which the program is invoked, number of msg to be written on pipe]
+ */
 int main(int argc, char const *argv[]) {
 
     int sock_host;
@@ -32,7 +42,6 @@ int main(int argc, char const *argv[]) {
 
     // Server address definition
     adrServer.sin_family = AF_INET;
-    adrServer.sin_addr.s_addr = inet_addr(SERVER_IP);
     adrServer.sin_port = htons(SERVER_PORT);
     
     if (connect(sock_host,(struct sockaddr *) &adrServer,sizeof(adrServer)) < 0) {
