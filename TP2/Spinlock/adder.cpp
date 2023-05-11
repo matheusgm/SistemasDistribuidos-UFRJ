@@ -1,10 +1,11 @@
+#include <bits/stdc++.h>
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
 #include <fstream>
-#include <bits/stdc++.h>
 #include <thread>
 #include <vector>
+#include <chrono>
 #include <atomic>
 
 using namespace std;
@@ -75,13 +76,10 @@ int main() {
         int kExpoArraySize = arrExpoArraySize[a];
         for (int t = 0; t < 9; t++){
             int kNumThreads = arrNumThreads[t];
-            double total_time_taken = 0.0;
+            double total_time_taken = 0;
             for (int m = 0; m < 10; m++){
                 cout << "array size: 10^" << kExpoArraySize;
                 cout << ", number of threads: " << kNumThreads <<endl;
-
-                clock_t start, end;
-                double time_taken;
 
                 // Creates array and fills it with random numbers
                 int kArraySize = pow(10, kExpoArraySize);
@@ -101,7 +99,7 @@ int main() {
 
                 // Create threads
                 vector<thread> threads(kNumThreads);
-                start = clock();
+                auto start = chrono::high_resolution_clock::now();
                 int chunkSize = kArraySize / kNumThreads;
                 // Splits array and call function.
                 for (int i = 0; i < kNumThreads; i++) {
@@ -113,16 +111,16 @@ int main() {
                 for(auto& thread : threads){
                     thread.join();
                 }
-                end = clock();
+                auto end = chrono::high_resolution_clock::now();
 
                 // Print results and exec time.
                 cout << "Total: " << total << endl;
                 if (total!=exp){
                     cout<<"ERROR: Total obtained does not match the expected value!" <<endl;
                 }
-                time_taken = ((double) (end - start)) / CLOCKS_PER_SEC;
-                cout << "Time taken by program is : "  << time_taken  << " sec" << endl << endl;
-                total_time_taken += time_taken;
+                chrono::duration<double, milli> time_taken = end - start;
+                cout << "Time taken by program is : "  << time_taken.count() << " ms" << endl << endl;
+                total_time_taken += time_taken.count();
                 // Clean
                 delete[] arr;
                 total = 0.0;
