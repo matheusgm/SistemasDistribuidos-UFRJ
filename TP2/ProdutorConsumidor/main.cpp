@@ -1,5 +1,5 @@
 #include <cstdlib>
-#include <ctime>
+#include <time.h>
 #include <iostream>
 #include <fstream>
 #include <thread>
@@ -113,7 +113,7 @@ void consumer_func() {
 int main(int argc, char const *argv[]) {
 
     int Np, Nc, N;
-    clock_t start, end;
+    struct timespec start, end;
     double time_taken;
     srand(time(NULL));
 
@@ -121,7 +121,7 @@ int main(int argc, char const *argv[]) {
     for (int m = 0; m < 10; m++){
         running = true;
         totalConsumed = 0;
-        Np=1, Nc=1, N=10;
+        Np=1, Nc=8, N=10;
 
         // Create Shared Memory
         sharedMemory = new SharedMemory(N);
@@ -134,7 +134,7 @@ int main(int argc, char const *argv[]) {
         // Create threads
         vector<thread> threadsProducer(Np);
         vector<thread> threadsConsumer(Nc);
-        start = clock();
+        clock_gettime(CLOCK_MONOTONIC, &start);
 
         // Producer Threads creation
         for (int i = 0; i < Np; i++) {
@@ -156,10 +156,11 @@ int main(int argc, char const *argv[]) {
             thread.join();
         }
 
-        end = clock();
-        time_taken = ((double) (end - start)) / CLOCKS_PER_SEC;
+        clock_gettime(CLOCK_MONOTONIC, &end);
+        time_taken = (end.tv_sec - start.tv_sec);
+        time_taken += (end.tv_nsec - start.tv_nsec) / 1000000000.0;
         total_time_taken+=time_taken;
-        cout << "Tempo ["<< m <<"]: " << time_taken << " | " << (end-start)<< endl;
+        cout << "Tempo ["<< m <<"]: " << time_taken << endl;
     }
     cout << "Tempo Medio: " << total_time_taken/10 << endl;
 
