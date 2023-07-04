@@ -30,8 +30,8 @@ void handleClient(int sock_client) {
     close(sock_client);
 }
 
-void interfaceThread() {
-    while (true) {
+void interfaceThread(bool *isRunning) {
+    while (*isRunning) {
         string command;
         cout << "Enter a command: ";
         getline(cin, command);
@@ -47,7 +47,7 @@ void interfaceThread() {
         } else if (command == "3") {
             // Terminate the coordinator's execution
             cout<< "Terminating...\n";
-            break;
+            *isRunning = false;
         } else {
             cout << "Invalid command. Try again, available commands" << endl;
             cout << "1: Print the current order queue.\n";
@@ -57,7 +57,7 @@ void interfaceThread() {
     }
 }
 
-void server() {
+void server(bool *isRunning) {
     int sock_server, sock_client;
     struct sockaddr_in adrServer, adrClient;
 
@@ -78,12 +78,12 @@ void server() {
         return;
     }
 
-    listen(sock_server, 1);
+    listen(sock_server, 10);
 
     cout << "Server Listening..." << endl;
 
     socklen_t adrClientSize = sizeof(adrClient);
-    while (true) {
+    while (*isRunning) {
         sock_client = accept(sock_server, (struct sockaddr *)&adrClient, &adrClientSize);
         if (sock_client < 0) {
             cout << "Error accepting client." << endl;
@@ -101,8 +101,9 @@ void server() {
 
 int main(int argc, char const *argv[]) {
     cout << "Coordinator ON.\n";
-    thread interface(interfaceThread);
-    server();
+    bool isRunning = true;
+    thread interface(interfaceThread, &isRunning);
+    server(&isRunning);
     interface.join();
     return 0;
 }
