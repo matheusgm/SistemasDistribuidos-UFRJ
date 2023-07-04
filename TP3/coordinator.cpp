@@ -10,21 +10,31 @@ using namespace std;
 
 #define SERVER_PORT 7000
 
-void handleClient(int sock_client) {
+void handleClient(int sock_client, bool *isRunning) {
     char F[10]; //size of message
 
-    while (true) {
+    while (*isRunning) {
+        
         recv(sock_client, F, sizeof(F), 0);
 
-        string msg_grant = "2|" + to_string(0) + "|";
-        int paddingSize = 9 - msg_grant.size();
-    
-        if (paddingSize > 0) {
-             msg_grant.append(paddingSize, '0');
-        }
+        if (F[0] == '1') {
+            // Recebe REQUEST do cliente
 
-        strcpy(F, msg_grant.c_str());
-        send(sock_client, F, sizeof(F), 0);
+
+            // Prepara mensagem de GRANT
+            string msg_grant = "2|" + to_string(0) + "|";
+            int paddingSize = 9 - msg_grant.size();
+            if (paddingSize > 0) {
+                msg_grant.append(paddingSize, '0');
+            }
+            strcpy(F, msg_grant.c_str());
+
+            // Envia mensagem de GRANT para o cliente
+            send(sock_client, F, sizeof(F), 0);
+        } else if(F[0] == '3') {
+            // Recebe RELEASE do cliente
+
+        }        
     }
 
     close(sock_client);
@@ -62,19 +72,21 @@ void server(bool *isRunning) {
     struct sockaddr_in adrServer, adrClient;
 
     // Server socket creation
-    sock_server = socket(AF_LOCAL, SOCK_STREAM, 0);
+    sock_server = socket(AF_INET, SOCK_STREAM, 0);
     if (sock_server < 0) {
         cout << "Error on opening socket." << endl;
+        *isRunning = false;
         return;
     }
 
     // Server address definition
-    adrServer.sin_family = AF_LOCAL;
+    adrServer.sin_family = AF_INET;
     adrServer.sin_addr.s_addr = INADDR_ANY;
     adrServer.sin_port = htons(SERVER_PORT);
 
     if (bind(sock_server, (struct sockaddr *)&adrServer, sizeof(adrServer)) < 0) {
         cout << "Error when trying to bind socket." << endl;
+        *isRunning = false;
         return;
     }
 
@@ -92,7 +104,7 @@ void server(bool *isRunning) {
 
         cout << "Client: " << sock_client << " accepted." << endl;
 
-        thread clientThread(handleClient, sock_client);
+        thread clientThread(handleClient, sock_client, isRunning);
         clientThread.detach();
     }
 
