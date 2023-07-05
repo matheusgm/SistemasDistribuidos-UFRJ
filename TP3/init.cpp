@@ -6,7 +6,7 @@
 using namespace std;
 namespace fs = std::filesystem;
 
-void runProgram(string path, string id, int r, int k) {
+void runProgram(string path, string id, int n, int r, int k) {
     // Getting filename for -o
     string base_filename = path.substr(path.find_last_of("/\\") + 1);
     string::size_type const p(base_filename.find_last_of('.'));
@@ -23,7 +23,7 @@ void runProgram(string path, string id, int r, int k) {
   
     // Running compiled files
     cout << "Running file " + file_without_extension + id + ".out\n";
-    string run = "./" + file_without_extension + id + ".out " + id + " " + to_string(r) + " " + to_string(k);
+    string run = "./" + file_without_extension + id + ".out " + id + " " + to_string(n) + " " + to_string(r) + " " + to_string(k);
     int systemRetRun = system(run.c_str());
     if(systemRetRun == -1){
         // The system method failed
@@ -52,10 +52,10 @@ int main(int argc, char const *argv[]) {
     string program2Path = (currentPath / "process.cpp").string();
 
     // Create threads to run each program
-    thread thread_coordinator(runProgram, program1Path, "", r, k);
+    thread thread_coordinator(runProgram, program1Path, "", n , r, k);
     vector<thread> thread_process(n);
     for (int i=0; i<n; i++) {
-        thread_process[i] = thread(runProgram, program2Path, to_string(i), r, k);
+        thread_process[i] = thread(runProgram, program2Path, to_string(i), n, r, k);
     }
 
     // Wait for threads to finish
