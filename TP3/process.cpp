@@ -60,9 +60,11 @@ int printTime(){
 
 int main(int argc, char const *argv[]) {
 
+    // Parsing arguments
+    int n = atoi(argv[1]); //number of processes
     int r = atoi(argv[2]); // times each process writes in file
     int k = atoi(argv[3]); // sleep time
-    cout << to_string(r) << endl;
+
     int sock_host;
     struct sockaddr_in adrServer;
 
@@ -91,7 +93,7 @@ int main(int argc, char const *argv[]) {
     char response[10];
 
     for (int i = 0; i < r; i++) {
-  
+
       string msg_request = "1|" + to_string(processId) + "|";
       int paddingSize = 9 - msg_request.size();
     
@@ -101,16 +103,17 @@ int main(int argc, char const *argv[]) {
       
       strcpy(F, msg_request.c_str());
       
-      cout << "Process sending mensage: " << F << endl;
+      cout << "Process: Sending mensage " << F << endl;
       send(sock_host, F, sizeof(F), 0);
       
       cout << "Waiting response from the server." << endl;
 
       recv(sock_host,response,sizeof(response),0);
-      cout << "Response: " << response << endl;
+      cout << "Process: server response " << response << endl;
 
       // Entering Critical Region
       printTime();
+      sleep(k);
       // Leaving Critical Region
       
       string msg_release = "3|" + to_string(processId) + "|";
@@ -122,14 +125,13 @@ int main(int argc, char const *argv[]) {
 
       strcpy(F, msg_release.c_str());
       
-      cout << "Sending mensage: " << F << endl;
+      cout << "Process: Sending mensage  " << F << endl;
       send(sock_host, F, sizeof(F), 0);
     
-      sleep(k);
     
     }
     
-    cout << "Disconnected from the Server." << endl;
+    cout << "Process: Disconnected from the Server." << endl;
     close(sock_host);
 
     return 0;

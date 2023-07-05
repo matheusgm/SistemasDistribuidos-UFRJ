@@ -1,5 +1,5 @@
 #include <bits/stdc++.h>
-#include<unistd.h>
+#include <unistd.h>
 #include <filesystem>
 #include <thread>
 
@@ -23,7 +23,7 @@ void runProgram(string path, string id, int n, int r, int k) {
   
     // Running compiled files
     cout << "Running file " + file_without_extension + id + ".out\n";
-    string run = "./" + file_without_extension + id + ".out " + id + " " + to_string(n) + " " + to_string(r) + " " + to_string(k);
+    string run = "./" + file_without_extension + id + ".out " + " " + to_string(n) + " " + to_string(r) + " " + to_string(k);
     int systemRetRun = system(run.c_str());
     if(systemRetRun == -1){
         // The system method failed

@@ -185,7 +185,7 @@ int server() {
         return 0;
     }
 
-    listen(sock_server, 1);
+    listen(sock_server, 256);
 
     cout << "Server Listening..." << endl;
 
@@ -203,7 +203,7 @@ int server() {
             continue;
         }
 
-        cout << "Client: " << sock_client << " accepted." << endl;
+        cout << "Server: client: " << sock_client << " accepted." << endl;
 
         clientThreads[i] = thread(handleClient, sock_client);
     }
@@ -222,7 +222,7 @@ int main(int argc, char const *argv[]) {
     // Parsing arguments
     n = atoi(argv[1]); //number of processes
     r = atoi(argv[2]); // times each process writes in file
-
+    int k = atoi(argv[3]); // sleep time
     cout << "Coordinator ON.\n";
 
     // Create and open log text file
