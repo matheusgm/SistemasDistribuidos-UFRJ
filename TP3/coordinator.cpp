@@ -11,10 +11,11 @@
 #include <queue>
 #include <tuple>
 #include <atomic>
+#include <map>
 
 using namespace std;
 
-#define SERVER_PORT 9503
+#define SERVER_PORT 9505
 #define LOG_NAME "[SERVER] "
 
 int n;
@@ -24,11 +25,14 @@ pid_t coordinatorId = getpid();
 mutex mtx;
 ofstream logFile;
 mutex log_mtx;
+mutex statistic_mtx;
 condition_variable cv;
 queue<std::tuple<std::string, int>> processQueue;
+map<string, int> statisticMap;
 atomic<bool> terminateInterfaceFlag(false);
 
-void write_on_log(string header, int client) {
+void write_on_log(string header, string client)
+{
     log_mtx.lock();
     // Open the file for writing
     logFile.open("log.txt", ios_base::app); // append mode
@@ -75,6 +79,15 @@ int interfaceThread()
         {
             // Print how many times each process has been serviced
             cout << LOG_NAME << "Times each process has been serviced.\n";
+
+            statistic_mtx.lock();
+            map<string, int>::iterator it;
+
+            for (it = statisticMap.begin(); it != statisticMap.end(); it++)
+            {
+                cout << LOG_NAME << it->first << ':' << it->second << endl;
+            }
+            statistic_mtx.unlock();
         }
         else if (command == "3")
         {
@@ -114,6 +127,7 @@ int granter()
         tuple<string, int> first = processQueue.front();
         processQueue.pop();
         int sock_client = get<1>(first);
+        string idString = get<0>(first);
 
         // Send grant message
         string msg_grant = "2|" + to_string(coordinatorId) + "|";
@@ -125,7 +139,11 @@ int granter()
         }
         strcpy(F, msg_grant.c_str());
         send(sock_client, F, sizeof(F), 0);
-        write_on_log("[S] Grant",sock_client);
+        write_on_log("[S] Grant", idString);
+
+        statistic_mtx.lock();
+        statisticMap[idString] = statisticMap[idString] + 1;
+        statistic_mtx.unlock();
 
         // Wait until release
         unique_lock<mutex> lck(mtx);
@@ -149,7 +167,8 @@ int handleClient(int sock_client)
     {
         cout << LOG_NAME << "Waiting message from client " << sock_client << endl;
         int by = recv(sock_client, F, sizeof(F), 0);
-        if (by == 0) break; // Cliente Disconnected
+        if (by == 0)
+            break; // Cliente Disconnected
         cout << LOG_NAME << "Server: msg received: " << F << endl;
 
         char msg[10];
@@ -186,11 +205,16 @@ int handleClient(int sock_client)
         {
             // adicionar ao log
             processQueue.push(make_tuple(idString, sock_client));
-            write_on_log("[R] Request",sock_client);
+            write_on_log("[R] Request", idString);
+            statistic_mtx.lock();
+            map<string, int>::iterator it = statisticMap.find(idString);
+            if ( it == statisticMap.end())
+                statisticMap[idString] = 0;
+            statistic_mtx.unlock();
         }
         else if (msgString == "3")
         {
-            write_on_log("[R] Release",sock_client);
+            write_on_log("[R] Release", idString);
             // adicionar ao log
             cv.notify_one(); // Notify a waiting thread
         }
