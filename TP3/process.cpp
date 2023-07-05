@@ -11,7 +11,7 @@
 
 using namespace std;
 
-#define SERVER_PORT 9502
+#define SERVER_PORT 9503
 #define LOG_NAME "[PROCESS] "
 
 ofstream outputFile;

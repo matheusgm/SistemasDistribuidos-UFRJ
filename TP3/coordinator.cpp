@@ -14,7 +14,7 @@
 
 using namespace std;
 
-#define SERVER_PORT 9502
+#define SERVER_PORT 9503
 #define LOG_NAME "[SERVER] "
 
 int n;
@@ -22,9 +22,29 @@ int r;
 pid_t coordinatorId = getpid();
 
 mutex mtx;
+ofstream logFile;
+mutex log_mtx;
 condition_variable cv;
 queue<std::tuple<std::string, int>> processQueue;
 atomic<bool> terminateInterfaceFlag(false);
+
+void write_on_log(string header, int client) {
+    log_mtx.lock();
+    // Open the file for writing
+    logFile.open("log.txt", ios_base::app); // append mode
+    if (logFile.is_open())
+    {
+        // Write the formatted time to the file
+        logFile << header << " - " << client << endl;
+        // Close the file
+        logFile.close();
+    }
+    else
+    {
+        cout << "Unable to open the log file for writing." << endl;
+    }
+    log_mtx.unlock();
+}
 
 int interfaceThread()
 {
@@ -105,6 +125,7 @@ int granter()
         }
         strcpy(F, msg_grant.c_str());
         send(sock_client, F, sizeof(F), 0);
+        write_on_log("[S] Grant",sock_client);
 
         // Wait until release
         unique_lock<mutex> lck(mtx);
@@ -165,9 +186,11 @@ int handleClient(int sock_client)
         {
             // adicionar ao log
             processQueue.push(make_tuple(idString, sock_client));
+            write_on_log("[R] Request",sock_client);
         }
         else if (msgString == "3")
         {
+            write_on_log("[R] Release",sock_client);
             // adicionar ao log
             cv.notify_one(); // Notify a waiting thread
         }
