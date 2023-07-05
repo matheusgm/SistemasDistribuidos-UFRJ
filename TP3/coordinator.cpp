@@ -10,7 +10,7 @@ using namespace std;
 
 #define SERVER_PORT 7000
 
-void handleClient(int sock_client, bool *isRunning) {
+void handleClient(int sock_client, bool *isRunning, std::vector<int> *process_list) {
     char F[10]; //size of message
 
     while (*isRunning) {
@@ -94,6 +94,8 @@ void server(bool *isRunning) {
 
     cout << "Server Listening..." << endl;
 
+    std::vector<int> process_list = std::vector<int>();
+
     socklen_t adrClientSize = sizeof(adrClient);
     while (*isRunning) {
         sock_client = accept(sock_server, (struct sockaddr *)&adrClient, &adrClientSize);
@@ -104,7 +106,7 @@ void server(bool *isRunning) {
 
         cout << "Client: " << sock_client << " accepted." << endl;
 
-        thread clientThread(handleClient, sock_client, isRunning);
+        thread clientThread(handleClient, sock_client, isRunning, process_list);
         clientThread.detach();
     }
 
