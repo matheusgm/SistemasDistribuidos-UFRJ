@@ -53,7 +53,6 @@ void write_on_log(string header, string client)
 
 int interfaceThread()
 {
-
     while (!terminateInterfaceFlag)
     {
         string command;
