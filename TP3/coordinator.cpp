@@ -16,7 +16,7 @@
 using namespace std;
 
 #define SERVER_PORT 9505
-#define LOG_NAME "[SERVER] "
+#define LOG_NAME "[COORDINATOR] "
 
 int n;
 int r;
@@ -26,6 +26,7 @@ mutex mtx;
 ofstream logFile;
 mutex log_mtx;
 mutex statistic_mtx;
+mutex queue_mtx;
 condition_variable cv;
 queue<std::tuple<std::string, int>> processQueue;
 map<string, int> statisticMap;
@@ -52,6 +53,7 @@ void write_on_log(string header, string client)
 
 int interfaceThread()
 {
+
     while (!terminateInterfaceFlag)
     {
         string command;
@@ -63,7 +65,9 @@ int interfaceThread()
             // Print the current order queue
             cout << LOG_NAME << "Current order queue: \n";
             // Create a copy of the queue
+            queue_mtx.lock();
             queue<tuple<string, int>> myQueueCopy = processQueue;
+            queue_mtx.unlock();
 
             // Print the copied queue
             while (!myQueueCopy.empty())
@@ -104,7 +108,7 @@ int interfaceThread()
         }
     }
 
-    cout << LOG_NAME << "Server: Finishing Interface.\n";
+    cout << LOG_NAME << "Finishing Interface.\n";
     return 0;
 }
 
@@ -124,8 +128,10 @@ int granter()
             break;
 
         // Removing First Element
+        queue_mtx.lock();
         tuple<string, int> first = processQueue.front();
         processQueue.pop();
+        queue_mtx.unlock();
         int sock_client = get<1>(first);
         string idString = get<0>(first);
 
@@ -150,7 +156,7 @@ int granter()
         cv.wait(lck);
     }
 
-    cout << LOG_NAME << "Server: Finishing Granter.\n";
+    cout << LOG_NAME << "Finishing Granter.\n";
 
     return 0;
 }
@@ -160,16 +166,13 @@ int handleClient(int sock_client)
     char F[10]; // size of message
     cout << LOG_NAME << "Handle Client " << sock_client << endl;
 
-    // Each process will write in the file r times
-    // It sends two messages to write: request and release
-    // So n_msgs = 2*r, then finishes
     while (!terminateInterfaceFlag)
     {
         cout << LOG_NAME << "Waiting message from client " << sock_client << endl;
         int by = recv(sock_client, F, sizeof(F), 0);
         if (by == 0)
             break; // Cliente Disconnected
-        cout << LOG_NAME << "Server: msg received: " << F << endl;
+        cout << LOG_NAME << "Message received: " << F << endl;
 
         char msg[10];
         char id[10];
@@ -203,8 +206,10 @@ int handleClient(int sock_client)
 
         if (msgString == "1")
         {
-            // adicionar ao log
+            queue_mtx.lock();
             processQueue.push(make_tuple(idString, sock_client));
+            queue_mtx.unlock();
+            // Add to log
             write_on_log("[R] Request", idString);
             statistic_mtx.lock();
             map<string, int>::iterator it = statisticMap.find(idString);
@@ -214,8 +219,8 @@ int handleClient(int sock_client)
         }
         else if (msgString == "3")
         {
+            // Add to log
             write_on_log("[R] Release", idString);
-            // adicionar ao log
             cv.notify_one(); // Notify a waiting thread
         }
         else
@@ -225,7 +230,7 @@ int handleClient(int sock_client)
     }
 
     close(sock_client);
-    cout << LOG_NAME << "Server: Closing Client Socket.\n";
+    cout << LOG_NAME << "Closing Client Socket.\n";
     return 0;
 }
 
@@ -273,7 +278,7 @@ int server()
             continue;
         }
 
-        cout << LOG_NAME << "Server: client: " << sock_client << " accepted." << endl;
+        cout << LOG_NAME << "client " << sock_client << " accepted." << endl;
 
         clientThreads[i] = thread(handleClient, sock_client);
     }
@@ -285,7 +290,7 @@ int server()
     }
     granterThread.join();
     close(sock_server);
-    cout << LOG_NAME << "Server: Closing Server Socket.\n";
+    cout << LOG_NAME << "Closing Server Socket.\n";
     return 0;
 }
 

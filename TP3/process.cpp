@@ -112,14 +112,14 @@ int main(int argc, char const *argv[])
         strcpy(F, msg_request.c_str());
 
         // Sending REQUEST message
-        cout << LOG_NAME << "Process: Sending mensage " << F << endl;
+        cout << LOG_NAME << "Sending mensage " << F << endl;
         send(sock_host, F, sizeof(F), 0);
 
         cout << LOG_NAME << "Waiting response from the server." << endl;
 
         // Received GRANT message
         recv(sock_host, response, sizeof(response), 0);
-        cout << LOG_NAME << "Process: server response " << response << endl;
+        cout << LOG_NAME << "Server response " << response << endl;
 
         // Entering Critical Region
         printTime();
@@ -136,11 +136,11 @@ int main(int argc, char const *argv[])
         strcpy(F, msg_release.c_str());
 
         // Sending RELEASE message
-        cout << LOG_NAME << "Process: Sending mensage  " << F << endl;
+        cout << LOG_NAME << "Sending mensage  " << F << endl;
         send(sock_host, F, sizeof(F), 0);
     }
 
-    cout << LOG_NAME << "Process: Disconnected from the Server." << endl;
+    cout << LOG_NAME << "Disconnected from the Server." << endl;
     close(sock_host);
 
     return 0;
